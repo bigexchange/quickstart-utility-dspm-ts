@@ -1,0 +1,8 @@
+version: '3.2'
+
+services:
+  quickstart-simple-ts:
+    image: quickstart-simple-ts
+    ports:
+      - 8085:8085
+    restart: always

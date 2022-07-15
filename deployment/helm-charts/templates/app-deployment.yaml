@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: quickstart-utility-policies-ts
+  name: quickstart-utility-policies-ts
+  namespace: {{ .Values.global.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: quickstart-utility-policies-ts
+  template:
+    metadata:
+      labels:
+        app: quickstart-utility-policies-ts
+    spec:
+      containers:
+        - name: quickstart-utility-policies-ts
+          image: "{{ .Values.global.repository }}/quickstart-utility-policies-ts:{{ .Values.global.tag }}"
+          imagePullPolicy: IfNotPresent
+          readinessProbe:
+            httpGet:
+              path: /manifest
+              port: 8085
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          livenessProbe:
+            httpGet:
+              path: /manifest
+              port: 8085
+            initialDelaySeconds: 30
+            periodSeconds: 60
+          ports:
+            - containerPort: 8085
+          resources:
+            requests:
+              memory: 1Gi
+              cpu: 1
+            limits:
+              memory: 6Gi
+              cpu: 2
+      imagePullSecrets:
+        - name: registrypullsecret
+      restartPolicy: Always
