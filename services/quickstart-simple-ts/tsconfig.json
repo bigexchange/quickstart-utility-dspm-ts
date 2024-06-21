@@ -20,5 +20,5 @@
       "removeComments": true,
       "allowUnreachableCode": false,
       "strictNullChecks": true,
-    }
+    },
 }

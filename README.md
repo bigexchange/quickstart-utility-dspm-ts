@@ -45,7 +45,7 @@ npm run start-watch
 - In your terminal, navigate to the deployment directory:
 
 ```bash
-cd /quickstart-simplew-ts/deployment
+cd /quickstart-simple-ts/deployment
 ```
 
 - Edit the host and container ports, if desired, in `setenv.sh` file

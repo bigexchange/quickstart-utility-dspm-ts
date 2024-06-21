@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="5" failures="0" errors="0" time="2.113">
+  <testsuite name="Testing actions..." errors="0" failures="0" skipped="0" timestamp="2024-06-17T17:58:48" time="1.529" tests="1">
+    <testcase classname="Testing actions... Testing &quot;Test Action&quot;" name="Testing actions... Testing &quot;Test Action&quot;" time="0.004">
+    </testcase>
+  </testsuite>
+  <testsuite name="Testing Execute Controller..." errors="0" failures="0" skipped="0" timestamp="2024-06-17T17:58:48" time="1.699" tests="4">
+    <testcase classname="Testing Execute Controller... Testing &quot;Test Action&quot;" name="Testing Execute Controller... Testing &quot;Test Action&quot;" time="0.003">
+    </testcase>
+    <testcase classname="Testing Execute Controller... Testing made up action" name="Testing Execute Controller... Testing made up action" time="0">
+    </testcase>
+    <testcase classname="Testing Execute Controller... Testing error" name="Testing Execute Controller... Testing error" time="0.001">
+    </testcase>
+    <testcase classname="Testing Execute Controller... Testing error with bad message" name="Testing Execute Controller... Testing error with bad message" time="0">
+    </testcase>
+  </testsuite>
+</testsuites>
