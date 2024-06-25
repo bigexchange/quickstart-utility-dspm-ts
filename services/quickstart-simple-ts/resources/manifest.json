@@ -1,7 +1,7 @@
 {
-    "app_name": "Quickstart Simple - Typescript",
-    "description": "A simple starter utility application. Made for easily getting started running scripts in BigID.",
-    "category": "utility",
+    "app_name": "Quickstart Utility DSPM - Typescript",
+    "description": "A simple starter utility application for DSPM solutions.",
+    "category": "security",
     "license_type":"FREE",
     "vendor": "BigID",
     "version": "0.0.0",
@@ -17,27 +17,26 @@
         "is_mandatory": false
     }],
     "actions": [{
-        "action_id": "Test Action",
-        "description": "Does nothing.",
+        "action_id": "Get DSPM Cases",
+        "description": "Returns filtered DSPM cases as JSON.",
+        "ds_supported_types": [
+            "googledrive",
+            "gdrive-v2",
+            "sharepoint-online",
+            "sharepoint-online-v2",
+            "o365-onedrive",
+            "onedrive-v2",
+            "smb_v2",
+            "s3",
+            "s3-v2"
+        ],
         "is_sync": true,
-        "action_params": [
-        {
-            "param_name":"Sample Selection Parameter",
-            "param_type":"String",
-            "input_type": "singleSelection",
-            "input_items": ["True","False"],
-            "is_cleartext":true,
-            "param_description":"Shows you how to do a selection",
-            "default_value":"True",
-            "param_priority":"primary",
-            "is_mandatory":true
-        },
-        {
-            "param_name": "Sample Input Parameter",
+        "action_params": [{
+            "param_name": "Data Source Types",
             "param_type": "String",
             "is_cleartext": true,
-            "param_description": "Input whatever you want!",
-            "default_value": "",
+            "param_description": "Enter a comma separated list of data source types from which to transfer policy violations. eg \"s3, s3-v2\"",
+            "default_value": "all",
             "param_priority": "primary",
             "is_mandatory": true
         }]}

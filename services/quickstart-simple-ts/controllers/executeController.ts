@@ -4,7 +4,7 @@ import {
   ExecutionProvider,
   StatusEnum,
 } from '@bigid/apps-infrastructure-node-js';
-import { executeTestAction } from '../utils/actions';
+import { printBigIdCasesAsJSON } from '../services/executeService';
 import { Response } from "express";
 
 import { getLogger } from "log4js";
@@ -19,8 +19,8 @@ export class ExecutionController extends ExecutionProvider {
       switch (action) {
 
         case ("Test Action"):
-          executeTestAction(executionContext);
-          this.generateSyncSuccessMessage(res, executionId, "Did nothing successfully!");
+          printBigIdCasesAsJSON(executionContext);
+          this.generateSyncSuccessMessage(res, executionId, "Printed cases as JSON successfully!");
           break;
 
         default:
