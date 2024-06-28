@@ -1,55 +1,51 @@
-jest.mock("../utils/actions");
+jest.mock("../services/executeService");
 jest.mock("log4js");
 
-import { fakeExecutionContextTestAction, fakeExecutionContextBadAction } from "../static/example_responses";
+import { fakeExecutionContextBadAction, fakeExecutionContextGetDSPMCasesAllSources } from "../static/example_responses";
 import { executionController } from "../controllers/executeController";
 import { mockResponse } from "../static/example_responses";
-import { executeTestAction } from "../utils/actions";
-import { ActionResponseDetails, StatusEnum } from "@bigid/apps-infrastructure-node-js";
 import { getLogger } from "log4js";
+import { printBigIdCasesAsJSON } from "../services/executeService";
+import { ActionResponseDetails, StatusEnum } from "@bigid/apps-infrastructure-node-js";
 
-let mockedExecuteTestAction = executeTestAction as jest.Mock;
+let mockedPrintBigIdCasesAsJSON = printBigIdCasesAsJSON as jest.Mock;
 let mockedGetLogger = getLogger as jest.Mock;
 let mockedLoggerError = jest.fn();
 
 mockedGetLogger.mockReturnValue({error: mockedLoggerError});
 
-describe("Testing Execute Controller...", () => {
+describe("Testing Action Switch...", () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
-    test("Testing \"Test Action\"", async () => {
-        const executionContext = fakeExecutionContextTestAction;
+    test("should execute \"Get DSPM Cases\" action", async () => {
+        const executionContext = fakeExecutionContextGetDSPMCasesAllSources;
         await executionController.executeAction(executionContext, mockResponse());
-        expect(mockedExecuteTestAction).toHaveBeenCalledTimes(1);
+        expect(mockedPrintBigIdCasesAsJSON).toHaveBeenCalledTimes(1);
     });
-    test("Testing made up action", async () => {
+    test("should trigger default branch", async () => {
         let res = mockResponse();
         const executionContext = fakeExecutionContextBadAction;
         await executionController.executeAction(executionContext, res);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith(new ActionResponseDetails("1111", StatusEnum.ERROR, 0, "Got unresolved action = foo"));
     });
-    test("Testing error", async () => {
+    test("should catch known error", async () => {
         let res = mockResponse();
-        let fakeError = new Error("erm what the Σ");
+        const executionContext = fakeExecutionContextGetDSPMCasesAllSources;
         let failSpy = jest.spyOn(executionController, "generateFailedResponse");
-        mockedExecuteTestAction.mockImplementationOnce(executionContext => {throw fakeError});
-        const executionContext = fakeExecutionContextTestAction;
+        mockedPrintBigIdCasesAsJSON.mockRejectedValueOnce(new Error("eek"));
         await executionController.executeAction(executionContext, res);
-        expect(mockedGetLogger).toHaveBeenCalledTimes(1);
-        expect(mockedLoggerError).toHaveBeenCalledWith(fakeError);
-        expect(failSpy).toHaveBeenCalledWith(res, executionContext.executionId, fakeError.message);
+        expect(mockedLoggerError).toHaveBeenCalledWith(new Error("eek"));
+        expect(failSpy).toHaveBeenCalledWith(res, "1111", "eek");
     });
-    test("Testing error with bad message", async () => {
+    test("should catch unknown error", async () => {
         let res = mockResponse();
-        let fakeError = "erm what the Σ";
+        const executionContext = fakeExecutionContextGetDSPMCasesAllSources;
         let failSpy = jest.spyOn(executionController, "generateFailedResponse");
-        mockedExecuteTestAction.mockImplementationOnce(executionContext => {throw fakeError});
-        const executionContext = fakeExecutionContextTestAction;
+        mockedPrintBigIdCasesAsJSON.mockRejectedValueOnce("eek");
         await executionController.executeAction(executionContext, res);
-        expect(mockedGetLogger).toHaveBeenCalledTimes(1);
-        expect(mockedLoggerError).toHaveBeenCalledWith(fakeError);
-        expect(failSpy).toHaveBeenCalledWith(res, executionContext.executionId, "unknown error");
+        expect(mockedLoggerError).toHaveBeenCalledWith("eek");
+        expect(failSpy).toHaveBeenCalledWith(res, "1111", "unknown error");
     });
 });

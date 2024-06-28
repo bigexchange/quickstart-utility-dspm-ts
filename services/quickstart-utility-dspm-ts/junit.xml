@@ -1,17 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="5" failures="0" errors="0" time="2.113">
-  <testsuite name="Testing actions..." errors="0" failures="0" skipped="0" timestamp="2024-06-17T17:58:48" time="1.529" tests="1">
-    <testcase classname="Testing actions... Testing &quot;Test Action&quot;" name="Testing actions... Testing &quot;Test Action&quot;" time="0.004">
+<testsuites name="jest tests" tests="35" failures="0" errors="0" time="2.179">
+  <testsuite name="Testing printBigIdCasesAsJSON..." errors="0" failures="0" skipped="0" timestamp="2024-06-28T20:31:01" time="1.762" tests="2">
+    <testcase classname="Testing printBigIdCasesAsJSON... should run and then log (all data sources)" name="Testing printBigIdCasesAsJSON... should run and then log (all data sources)" time="0.004">
+    </testcase>
+    <testcase classname="Testing printBigIdCasesAsJSON... should run and then log (select data sources)" name="Testing printBigIdCasesAsJSON... should run and then log (select data sources)" time="0.002">
     </testcase>
   </testsuite>
-  <testsuite name="Testing Execute Controller..." errors="0" failures="0" skipped="0" timestamp="2024-06-17T17:58:48" time="1.699" tests="4">
-    <testcase classname="Testing Execute Controller... Testing &quot;Test Action&quot;" name="Testing Execute Controller... Testing &quot;Test Action&quot;" time="0.003">
+  <testsuite name="Testing getParamValue" errors="0" failures="0" skipped="0" timestamp="2024-06-28T20:31:01" time="1.79" tests="29">
+    <testcase classname="Testing getParamValue valid action param should return string" name="Testing getParamValue valid action param should return string" time="0.003">
     </testcase>
-    <testcase classname="Testing Execute Controller... Testing made up action" name="Testing Execute Controller... Testing made up action" time="0">
+    <testcase classname="Testing getParamValue invalid action param should return undefined" name="Testing getParamValue invalid action param should return undefined" time="0">
     </testcase>
-    <testcase classname="Testing Execute Controller... Testing error" name="Testing Execute Controller... Testing error" time="0.001">
+    <testcase classname="Testing getParamValue valid global param should return string" name="Testing getParamValue valid global param should return string" time="0">
     </testcase>
-    <testcase classname="Testing Execute Controller... Testing error with bad message" name="Testing Execute Controller... Testing error with bad message" time="0">
+    <testcase classname="Testing getParamValue invalid global param should return undefined" name="Testing getParamValue invalid global param should return undefined" time="0.001">
+    </testcase>
+    <testcase classname="Testing getStringParam valid action param should return string" name="Testing getStringParam valid action param should return string" time="0">
+    </testcase>
+    <testcase classname="Testing getStringParam invalid action param should return empty string" name="Testing getStringParam invalid action param should return empty string" time="0">
+    </testcase>
+    <testcase classname="Testing getStringParam valid global param should return string" name="Testing getStringParam valid global param should return string" time="0">
+    </testcase>
+    <testcase classname="Testing getStringParam invalid global param should return expty string" name="Testing getStringParam invalid global param should return expty string" time="0">
+    </testcase>
+    <testcase classname="Testing getStringActionParam Get Data Sources from action params should return s3-v2" name="Testing getStringActionParam Get Data Sources from action params should return s3-v2" time="0">
+    </testcase>
+    <testcase classname="Testing getStringActionParam Get invalid param from action params should return en empty string" name="Testing getStringActionParam Get invalid param from action params should return en empty string" time="0">
+    </testcase>
+    <testcase classname="Testing tokenizeStringList spam  ,   ham,   eggs,foo ,bar should return an array of strings with each item in the list" name="Testing tokenizeStringList spam  ,   ham,   eggs,foo ,bar should return an array of strings with each item in the list" time="0.001">
+    </testcase>
+    <testcase classname="Testing getAffectedObjects should return the affected objects when the response is successful" name="Testing getAffectedObjects should return the affected objects when the response is successful" time="0.001">
+    </testcase>
+    <testcase classname="Testing getAffectedObjects should throw an error when the status is not 200" name="Testing getAffectedObjects should throw an error when the status is not 200" time="0.002">
+    </testcase>
+    <testcase classname="Testing getAffectedObjects should throw an error when axios request fails" name="Testing getAffectedObjects should throw an error when axios request fails" time="0">
+    </testcase>
+    <testcase classname="Testing getBigIdCases testing sucessful response with data sources" name="Testing getBigIdCases testing sucessful response with data sources" time="0.001">
+    </testcase>
+    <testcase classname="Testing getBigIdCases testing sucessful response with ds in cache" name="Testing getBigIdCases testing sucessful response with ds in cache" time="0">
+    </testcase>
+    <testcase classname="Testing getBigIdCases testing sucessful response with no resourceProperties or authenticationProperties fields" name="Testing getBigIdCases testing sucessful response with no resourceProperties or authenticationProperties fields" time="0.001">
+    </testcase>
+    <testcase classname="Testing getBigIdCases should throw error when no affected objects" name="Testing getBigIdCases should throw error when no affected objects" time="0">
+    </testcase>
+    <testcase classname="Testing getBigIdCases should throw error when totalCount is 0" name="Testing getBigIdCases should throw error when totalCount is 0" time="0">
+    </testcase>
+    <testcase classname="Testing getBigIdCases failed executeHttpGet request should be caught and thrown" name="Testing getBigIdCases failed executeHttpGet request should be caught and thrown" time="0">
+    </testcase>
+    <testcase classname="Testing getBigIdCases non 200 response should throw an error" name="Testing getBigIdCases non 200 response should throw an error" time="0">
+    </testcase>
+    <testcase classname="Testing getCompliancePolicy testing with 200 response" name="Testing getCompliancePolicy testing with 200 response" time="0.001">
+    </testcase>
+    <testcase classname="Testing getCompliancePolicy testing with 200 response and invalid policy name" name="Testing getCompliancePolicy testing with 200 response and invalid policy name" time="0">
+    </testcase>
+    <testcase classname="Testing getCompliancePolicy testing with 401 response and invalid policy name" name="Testing getCompliancePolicy testing with 401 response and invalid policy name" time="0">
+    </testcase>
+    <testcase classname="Testing getCompliancePolicy should throw error with null policy" name="Testing getCompliancePolicy should throw error with null policy" time="0">
+    </testcase>
+    <testcase classname="Testing getDataSource testing with 200 response" name="Testing getDataSource testing with 200 response" time="0">
+    </testcase>
+    <testcase classname="Testing getDataSource testing with 400 error" name="Testing getDataSource testing with 400 error" time="0.002">
+    </testcase>
+    <testcase classname="Testing getDataSource testing with unknown error" name="Testing getDataSource testing with unknown error" time="0">
+    </testcase>
+    <testcase classname="Testing getDataSource should throw error if dataSource is null" name="Testing getDataSource should throw error if dataSource is null" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="Testing Action Switch..." errors="0" failures="0" skipped="0" timestamp="2024-06-28T20:31:01" time="1.803" tests="4">
+    <testcase classname="Testing Action Switch... should execute &quot;Get DSPM Cases&quot; action" name="Testing Action Switch... should execute &quot;Get DSPM Cases&quot; action" time="0.003">
+    </testcase>
+    <testcase classname="Testing Action Switch... should trigger default branch" name="Testing Action Switch... should trigger default branch" time="0">
+    </testcase>
+    <testcase classname="Testing Action Switch... should catch known error" name="Testing Action Switch... should catch known error" time="0.001">
+    </testcase>
+    <testcase classname="Testing Action Switch... should catch unknown error" name="Testing Action Switch... should catch unknown error" time="0">
     </testcase>
   </testsuite>
 </testsuites>
