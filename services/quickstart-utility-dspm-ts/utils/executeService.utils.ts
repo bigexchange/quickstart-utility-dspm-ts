@@ -1,5 +1,26 @@
 import { executeHttpGet, ExecutionContext } from "@bigid/apps-infrastructure-node-js";
 
+//ENUMS
+
+/**
+ * This enum is used an argument to the {@link getParamValue} function.
+ */
+export enum ParamType {
+    GLOBAL,
+    ACTION
+}
+
+//INTERFACES
+
+/**
+ * This interface represents the structure of a param in the execution context
+ * {@link ExecutionContext}
+ */
+export interface BigIdParam {
+    paramName: string,
+    paramValue: string
+}
+
 /**
  * This interface represents the format of a BigID policy that is returned from the BigID API. See link for policy format.
  * @link https://api.bigid.com/index-discovery.html#get-/compliance-rules
@@ -65,8 +86,6 @@ export interface BigIdCase {
     id: string;
     affectedObjects: BigIdObject[]; //This field does not come from the api call directy - it must be populated manually
     complianceStatus: string; //This field does not come from the api call directy - it must be populated manually
-    awsRegion: string | undefined; //This field does not come from the api call directy - it must be populated manually
-    awsArn: string | undefined; //This field does not come from the api call directy - it must be populated manually
 }
 
 /**
@@ -143,7 +162,6 @@ export interface BigIdObject {
     document_type: string;
     ownersList: string[];
     ds_owner: any[];
-    awsRegion: string;
 }
 
 /**
@@ -259,40 +277,32 @@ export async function getBigIdCases(executionContext: ExecutionContext, dataSour
     }
     await executeHttpGet(executionContext, url)
         .then(async (response) => {
-            if (response.data.data.totalCount === 0) throw new Error(`Error: no BigID cases were found. Please ensure you selected valid data sources. Data sources: ${dataSourceList}.`);
+            if (response.data.data.totalCount === 0) throw new Error(`No BigID cases were found. Please ensure you selected valid data sources. Data sources: ${dataSourceList}.`);
             var dsCache = new Map<string, DsConnection>();
             for (let bigIdCase of response.data.data.cases as BigIdCase[]) {
-                bigIdCase.complianceStatus = (await getCompliancePolicy(executionContext, bigIdCase.policyName)).status;
-                if (bigIdCase.numberOfAffectedObjects && bigIdCase.numberOfAffectedObjects > 0) {
-                    bigIdCase.affectedObjects = await getAffectedObjects(executionContext, bigIdCase);
-                    const dsName: string = bigIdCase.affectedObjects[0].source;
-                    var dataSource: DsConnection;
-                    //cache data sources to reduce run time
-                    if (dsCache.has(dsName)) {
-                        dataSource = dsCache.get(dsName) as DsConnection; //this is ok because i am checking that the cache has the ds
+                if(bigIdCase.caseStatus == "open") {
+                    bigIdCase.complianceStatus = (await getCompliancePolicy(executionContext, bigIdCase.policyName)).status;
+                    if (bigIdCase.numberOfAffectedObjects && bigIdCase.numberOfAffectedObjects > 0) {
+                        bigIdCase.affectedObjects = await getAffectedObjects(executionContext, bigIdCase);
+                        const dsName: string = bigIdCase.affectedObjects[0].source;
+                        var dataSource: DsConnection;
+                        //cache data sources to reduce run time
+                        if (dsCache.has(dsName)) {
+                            dataSource = dsCache.get(dsName) as DsConnection; //this is ok because i am checking that the cache has the ds
+                        }
+                        else {
+                            dataSource = await getDataSource(executionContext, dsName);
+                            dsCache.set(dsName, dataSource);
+                        }
+                        cases.push(bigIdCase);
                     }
                     else {
-                        dataSource = await getDataSource(executionContext, dsName);
-                        dsCache.set(dsName, dataSource);
+                        throw new Error(`Open case has no affected objects: ${bigIdCase.caseLabel}`)
                     }
-                    var awsRegion: string | undefined = undefined;
-                    if (dataSource.authStrategy === "roleAuthentication") {
-                        awsRegion = dataSource.resourceProperties?.resourceEntry;
-                        bigIdCase.awsRegion = awsRegion ?? "Not Found";
-                        bigIdCase.awsArn = dataSource.authenticationProperties?.roleResourceName ?? "Not Found";
-                    }
-                    if (awsRegion) bigIdCase.affectedObjects.forEach(affectedObject => affectedObject.awsRegion = (awsRegion as string));
-                    cases.push(bigIdCase);
-                }
-                else if (bigIdCase.caseStatus != "open") { //non-open cases may not have affected objects but we are not importing these so it is ok
-                    cases.push(bigIdCase);
-                }
-                else {
-                    throw new Error(`Open case has no affected objects`)
                 }
             }
         }).catch((error) => {
-            throw new Error(`Error: failed to fetch cases from BigID. ${error}.`)
+            throw new Error(`Failed to fetch cases from BigID. ${error}.`)
         })
     return cases;
 }
@@ -309,12 +319,11 @@ export async function getAffectedObjects(executionContext: ExecutionContext, big
     //request 32 affected objects with filters: SYSTEM=bigIdCase.dataSourceName AND policy IN (bigIdCase.policyName)
     const url: string = `data-catalog/?format=json&requireTotalCount=true&limit=32&filter=${encodeURIComponent(queryFilter)}`;
     await executeHttpGet(executionContext, url).then((response) => {
-        //console.log(response.data); //DEBUG
         for (let affectedObject of response.data.results as BigIdObject[]) {
             affectedObjects.push(affectedObject);
         }
     }).catch((error) => {
-        throw new Error(`Error: failed to fetch affected objects from BigID. API Status: ${error}.`);
+        throw new Error(`Failed to fetch affected objects from BigID. API Status: ${error}.`);
     });
     return affectedObjects;
 }
@@ -332,13 +341,13 @@ export async function getCompliancePolicy(executionContext: ExecutionContext, po
                 policy = response.data[0] as BigIdPolicy;
             }
             else {
-                throw new Error(`Error: BigID API found no policies with name: ${policyName}.`);
+                throw new Error(`BigID API found no policies with name: ${policyName}.`);
             }
     }).catch((error) => {
-        throw new Error(`Error: failed to fetch policies from BigID. API Status: ${error}.`)
+        throw new Error(`Failed to fetch policies from BigID. API Status: ${error}.`)
     });
     if(policy === null) {
-        throw new Error(`Error: Something went wrong getting policy.`);
+        throw new Error(`Something went wrong getting policy.`);
     }
     return policy;
 }
@@ -367,4 +376,47 @@ export async function getDataSource(executionContext: ExecutionContext, dataSour
         throw new Error(`Unexpected error occured while getting data source.`);
     }
     return dataSource;
+}
+
+/**
+ * This function trims and tokenizes a string containing a comma separated list
+ * @param list a string containing a comma separated list.
+ * @returns an array of strings containing the tokens from list.
+ */
+export function tokenizeStringList(list: string): Array<string> {
+    return list.trim().split(/ *, */);
+}
+
+/**
+ * This is a lookup function that searches the {@link executionContext} for a parameter name and returns the corresponding parameter value.
+ * @param executionContext A container for the call to the BigID API.
+ * @param paramName The name of the parameter to look up.
+ * @param type A {@link ParamType} object that determines whether to look up a global or an action param.
+ * @returns The value of the corresponsing {@link paramName}, or undefined.
+ */
+export function getParamValue(executionContext: ExecutionContext, paramName: string, type: ParamType): string | undefined {
+    const param = (type == ParamType.ACTION) ? (executionContext.actionParams as any as Array<BigIdParam>).find(par => par.paramName == paramName) : (executionContext.globalParams as any as Array<BigIdParam>).find(par => par.paramName == paramName);
+    return param ? param.paramValue : undefined;
+}
+
+/**
+ * This is a lookup function that searches the {@link executionContext} for a parameter name and returns the corresponding parameter value as a string by calling {@link getParamValue}.
+ * @param executionContext A container for the call to the BigID API.
+ * @param paramName The name of the parameter to look up.
+ * @param type A {@link ParamType} object that determines whether to look up a global or an action param.
+ * @returns The value of the corresponsing {@link paramName}, or an empty string if undefined.
+ */
+export function getStringParam(executionContext: ExecutionContext, paramName: string, type: ParamType): string {
+    const param: string | undefined = getParamValue(executionContext, paramName, type);
+    return (param != undefined) ? param : "";
+}
+
+/**
+ * This is a lookup function that searches the {@link executionContext} for a action parameter name and returns the corresponding parameter value as a string.
+ * @param executionContext A container for the call to the BigID API.
+ * @param paramName The name of the parameter to look up.
+ * @returns The value of the corresponsing {@link paramName}, or an empty string if undefined.
+ */
+export function getStringActionParam(executionContext: ExecutionContext, paramName: string): string {
+    return getStringParam(executionContext, paramName, ParamType.ACTION);
 }

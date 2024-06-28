@@ -18,8 +18,8 @@ export class ExecutionController extends ExecutionProvider {
     try {
       switch (action) {
 
-        case ("Test Action"):
-          printBigIdCasesAsJSON(executionContext);
+        case ("Get DSPM Cases"):
+          await printBigIdCasesAsJSON(executionContext);
           this.generateSyncSuccessMessage(res, executionId, "Printed cases as JSON successfully!");
           break;
 
