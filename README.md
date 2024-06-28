@@ -1,4 +1,4 @@
-# Quickstart Simple Utility App - TypeScript
+# Quickstart DSPM Utility App - TypeScript
 
 A BigID DSPM Utility App project template written in [TypeScript](https://www.typescriptlang.org/), meant to serve as a starting point for DSPM apps.
 
