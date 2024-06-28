@@ -22,6 +22,15 @@ export interface BigIdParam {
 }
 
 /**
+ * This interface represents a BigID search query
+ */
+export interface BigIdQuery {
+    field: string,
+    value: any,
+    operator: string
+}
+
+/**
  * This interface represents the format of a BigID policy that is returned from the BigID API. See link for policy format.
  * @link https://api.bigid.com/index-discovery.html#get-/compliance-rules
  */
@@ -258,7 +267,7 @@ export interface DsConnection {
 }
 
 /**
- * This function calls the BigID DSPM API to retrieve a list of cases by data source type.
+ * This function calls the BigID DSPM API to retrieve a list of open cases by data source type.
  * @param executionContext A container for the call to the BigID API.
  * @param dataSourceList (Optional) A list of data sources to filter the request. All data sources
  * will be retrieved if undefined.
@@ -267,38 +276,41 @@ export interface DsConnection {
 export async function getBigIdCases(executionContext: ExecutionContext, dataSourceList?: Array<string>): Promise<BigIdCase[]> {
     var cases = new Array<BigIdCase>();
     var url: string = "actionable-insights/all-cases?requireTotalCount=true";
+    var queryFilter: BigIdQuery[] = [{
+        field: "caseStatus",
+        value: "open",
+        operator: "equal"
+    }];
     if (dataSourceList) {
-        const queryFilter = [{
+        queryFilter.push({
             field: "dataSourceType",
             value: dataSourceList,
             operator: "in"
-        }];
-        url += `&filter=${encodeURIComponent(JSON.stringify(queryFilter))}`;
+        });
     }
+    url += `&filter=${encodeURIComponent(JSON.stringify(queryFilter))}`;
     await executeHttpGet(executionContext, url)
         .then(async (response) => {
             if (response.data.data.totalCount === 0) throw new Error(`No BigID cases were found. Please ensure you selected valid data sources. Data sources: ${dataSourceList}.`);
             var dsCache = new Map<string, DsConnection>();
             for (let bigIdCase of response.data.data.cases as BigIdCase[]) {
-                if(bigIdCase.caseStatus == "open") {
-                    bigIdCase.complianceStatus = (await getCompliancePolicy(executionContext, bigIdCase.policyName)).status;
-                    if (bigIdCase.numberOfAffectedObjects && bigIdCase.numberOfAffectedObjects > 0) {
-                        bigIdCase.affectedObjects = await getAffectedObjects(executionContext, bigIdCase);
-                        const dsName: string = bigIdCase.affectedObjects[0].source;
-                        var dataSource: DsConnection;
-                        //cache data sources to reduce run time
-                        if (dsCache.has(dsName)) {
-                            dataSource = dsCache.get(dsName) as DsConnection; //this is ok because i am checking that the cache has the ds
-                        }
-                        else {
-                            dataSource = await getDataSource(executionContext, dsName);
-                            dsCache.set(dsName, dataSource);
-                        }
-                        cases.push(bigIdCase);
+                bigIdCase.complianceStatus = (await getCompliancePolicy(executionContext, bigIdCase.policyName)).status;
+                if (bigIdCase.numberOfAffectedObjects && bigIdCase.numberOfAffectedObjects > 0) {
+                    bigIdCase.affectedObjects = await getAffectedObjects(executionContext, bigIdCase);
+                    const dsName: string = bigIdCase.affectedObjects[0].source;
+                    var dataSource: DsConnection;
+                    //cache data sources to reduce run time
+                    if (dsCache.has(dsName)) {
+                        dataSource = dsCache.get(dsName) as DsConnection; //this is ok because i am checking that the cache has the ds
                     }
                     else {
-                        throw new Error(`Open case has no affected objects: ${bigIdCase.caseLabel}`)
+                        dataSource = await getDataSource(executionContext, dsName);
+                        dsCache.set(dsName, dataSource);
                     }
+                    cases.push(bigIdCase);
+                }
+                else {
+                    throw new Error(`Open case has no affected objects: ${bigIdCase.caseLabel}`)
                 }
             }
         }).catch((error) => {
