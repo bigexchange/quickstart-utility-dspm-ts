@@ -7,6 +7,7 @@ The sections below describe how to debug the solution, how to build it to run in
 Once cloned, this solution can be used as the starting point for your own BigID DSPM App by editing the existing actions or adding new ones.
 
 - [Quickstart DSPM Utility App - TypeScript](#quickstart-dspm-utility-app-typescript)
+  - [How to set up the test API](#how-to-set-up-the-test-api)
   - [How to debug](#how-to-debug)
   - [How to build for running in Docker](#how-to-build-for-running-in-docker)
     - [Building for local Docker instance](#building-for-local-docker-instance)
@@ -39,6 +40,41 @@ npm install
 ```bash
 npm run start-watch
 ```
+
+## How to set up the test API
+- In your terminal, navigate to the `test/API/resty` directory:
+
+```bash
+cd /quickstart-utility-dspm-ts/test/API/resty
+```
+
+- Create a python virtual environment:
+```bash
+python3 -m venv env
+```
+
+- Activate the virtual environment:
+```bash
+source venv/bin/activate
+```
+
+- Create the database:
+```bash
+cd resty
+python3 manage.py migrate
+```
+
+- Create a superuser:
+```bash
+python3 manage.py createsuperuser
+```
+
+- Run the API:
+```bash
+python3 manage.py runserver
+```
+
+- The test API is now running. To connect it to the quickstart app, you will need to forward port 8000 to a public url
 
 ## How to build for running in Docker
 
