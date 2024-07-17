@@ -1,21 +1,12 @@
 {
-    "app_name": "Quickstart Utility DSPM - Typescript",
-    "description": "A simple starter utility application for DSPM solutions.",
+    "app_name": "Quickstart Utility DSPM",
+    "description": "DSPM Quickstart app that checks for non backed up files in DSPM cases and backs them up",
     "category": "security",
     "license_type":"FREE",
     "vendor": "BigID",
     "version": "0.0.0",
     "license_verification_key": "",
-    "global_params": [{
-        "param_name": "EXAMPLE_PARAM",
-        "param_type": "String",
-        "is_cleartext": true,
-        "param_description": "A concise description of your global parameter.",
-        "default_value": "this is the default",
-        "hint": "A hint on filling in this parameter",
-        "param_priority": "primary",
-        "is_mandatory": false
-    }],
+    "global_params": [],
     "actions": [{
         "action_id": "Get DSPM Cases",
         "description": "Returns filtered DSPM cases as JSON.",
@@ -37,6 +28,66 @@
             "is_cleartext": true,
             "param_description": "Enter a comma separated list of data source types from which to transfer policy violations. eg \"s3, s3-v2\"",
             "default_value": "all",
+            "param_priority": "primary",
+            "is_mandatory": true
+        }]},
+        {
+        "action_id": "Backup files (DSPM)",
+        "description": "Gets DSPM cases for files not backed up and backs up to API",
+        "ds_supported_types": [
+            "googledrive",
+            "gdrive-v2",
+            "sharepoint-online",
+            "sharepoint-online-v2",
+            "o365-onedrive",
+            "onedrive-v2",
+            "smb_v2",
+            "s3",
+            "s3-v2"
+        ],
+        "is_sync": true,
+        "action_params": [{
+            "param_name": "Data Source Types",
+            "param_type": "String",
+            "is_cleartext": true,
+            "param_description": "Enter a comma separated list of data source types from which to transfer policy violations. eg \"s3, s3-v2\"",
+            "default_value": "all",
+            "param_priority": "primary",
+            "is_mandatory": true
+        },
+        {
+            "param_name": "Policy Name",
+            "param_type": "String",
+            "is_cleartext": true,
+            "param_description": "Enter the name of a policy that checks for file backups",
+            "default_value": "Non Backed Up Files",
+            "param_priority": "primary",
+            "is_mandatory": true
+        },
+        {
+            "param_name": "Backup Tag",
+            "param_type": "String",
+            "is_cleartext": true,
+            "param_description": "Enter the name of the tag for objects that are not backed up",
+            "default_value": "hasBackup",
+            "param_priority": "primary",
+            "is_mandatory": true
+        },
+        {
+            "param_name": "API Token",
+            "param_type": "String",
+            "is_cleartext": true,
+            "param_description": "Authentication token for API",
+            "default_value": "",
+            "param_priority": "primary",
+            "is_mandatory": true
+        },
+        {
+            "param_name": "API Base URL",
+            "param_type": "String",
+            "is_cleartext": true,
+            "param_description": "Base URL for API (including trailing slash)",
+            "default_value": "",
             "param_priority": "primary",
             "is_mandatory": true
         }]}
