@@ -268,6 +268,9 @@ export interface DsConnection {
     is_certificate: boolean;
 }
 
+/**
+ * This interface represents a Tag object from the BigID API.
+ */
 export interface bigIdTag {
     tagId: string;
     valueId: string;
@@ -288,6 +291,9 @@ export interface APIFile {
     path: string;
 }
 
+/**
+ * This interface represents a response from the backup file endpoint of the fake API.
+ */
 export interface BackupFileResponse {
     backups_created: any[];
     backups_found: any[];
@@ -295,6 +301,11 @@ export interface BackupFileResponse {
     num_found: number;
 }
 
+/**
+ * A simple mapping from a BigIdObject to an APIFile
+ * @param object A BigID Object.
+ * @returns A mapped APIFile object.
+ */
 export function mapObjectToFile(object: BigIdObject): APIFile {
     return({
         id: object.id,
@@ -302,16 +313,16 @@ export function mapObjectToFile(object: BigIdObject): APIFile {
     });
 }
 
+/**
+ * This function 'backs up' a list of objects to the fake API.
+ * @param executionContext A container for the call to the BigID API.
+ * @param objects A list of BigID catalog objects.
+ * @returns A BackupFileResponse from the fake API.
+ */
 export async function backupFilesInFakeAPI(executionContext: ExecutionContext, objects: BigIdObject[]): Promise<BackupFileResponse> {
     const apiToken: string = getStringActionParam(executionContext, "API Token");
     const apiBaseURL: string = getStringActionParam(executionContext, "API Base URL");
-    let fileList: BackupFileResponse | null = null;
-    if(apiToken === "") {
-        throw new Error("Missing Fake API Token");
-    }
-    if(apiBaseURL === "") {
-        throw new Error("Missing Fake API Base URL");
-    }
+    let resp: BackupFileResponse | null = null;
     const fileMap = objects.map((obj) => mapObjectToFile(obj))
     await axios.post(
         apiBaseURL+"files/",
@@ -325,14 +336,14 @@ export async function backupFilesInFakeAPI(executionContext: ExecutionContext, o
             }
         }
     ).then((response) => {
-        fileList = response.data;
+        resp = response.data;
     }).catch((error: Error) => {
         throw new Error("Error accessing fake API. Message: "+ error);
     })
-    if(!fileList) {
+    if(!resp) {
         throw new Error("There was a problem getting file list from fake API");
     }
-    return fileList;
+    return resp;
 }
 
 /**
@@ -343,23 +354,25 @@ export async function backupFilesInFakeAPI(executionContext: ExecutionContext, o
  * @param policyName The name of the policy to filter DSPM cases by.
  * @returns An array of {@link BigIdCase} objects.
  */
-export async function getBigIdCases(executionContext: ExecutionContext, dataSourceList: Array<string> | undefined, policyName: string): Promise<BigIdCase[]> {
+export async function getBigIdCases(executionContext: ExecutionContext, dataSourceList: Array<string> | undefined, policyName?: string): Promise<BigIdCase[]> {
     var cases = new Array<BigIdCase>();
     var url: string = "actionable-insights/all-cases?requireTotalCount=true";
     var queryFilter: BigIdQuery[] = [{
         field: "caseStatus",
         value: "open",
         operator: "equal"
-    },
-    {
-        field: "policyName",
-        value: [policyName],
-        operator: "in"
     }];
-    if (dataSourceList) {
+    if(dataSourceList) {
         queryFilter.push({
             field: "dataSourceType",
             value: dataSourceList,
+            operator: "in"
+        });
+    }
+    if(policyName) {
+        queryFilter.push({
+            field: "policyName",
+            value: [policyName],
             operator: "in"
         });
     }
@@ -370,8 +383,8 @@ export async function getBigIdCases(executionContext: ExecutionContext, dataSour
             var dsCache = new Map<string, DsConnection>();
             for (let bigIdCase of response.data.data.cases as BigIdCase[]) {
                 bigIdCase.complianceStatus = (await getCompliancePolicy(executionContext, bigIdCase.policyName)).status;
-                if (bigIdCase.numberOfAffectedObjects && bigIdCase.numberOfAffectedObjects > 0) {
-                    bigIdCase.affectedObjects = await getAffectedObjects(executionContext, bigIdCase);
+                bigIdCase.affectedObjects = await getAffectedObjects(executionContext, bigIdCase);
+                if (bigIdCase.numberOfAffectedObjects && bigIdCase.numberOfAffectedObjects > 0 && bigIdCase.affectedObjects && bigIdCase.affectedObjects.length > 0) {
                     const dsName: string = bigIdCase.affectedObjects[0].source;
                     var dataSource: DsConnection;
                     //cache data sources to reduce run time
@@ -394,6 +407,13 @@ export async function getBigIdCases(executionContext: ExecutionContext, dataSour
     return cases;
 }
 
+/**
+ * This function takes a list of DSPM Cases and remediates all of the cases with no affected objects.
+ * @param executionContext A container for the call to the BigID API.
+ * @param cases A list of BigID DSPM cases.
+ * @param remediationMessage The message describing the reason for remediation.
+ * @returns The number of remediated cases.
+ */
 export async function remediateCasesWithNoAffectedObjects(executionContext: ExecutionContext, cases: BigIdCase[], remediationMessage: string): Promise<number> {
     //first, update the affected objects as they may have changed
     let noAffectedObjects: BigIdCase[] = [];
@@ -520,17 +540,19 @@ export async function getDataSource(executionContext: ExecutionContext, dataSour
     return dataSource;
 }
 
+/**
+ * This function looks up a BigID tag by its human-readable name and value. Throws an error if not found.
+ * @param executionContext A container for the call to the BigID API.
+ * @param tagName The human-readable name of the tag to assign.
+ * @param tagValue The human-readable value of the tag to assign.
+ * @returns A BigIdTag object, if found.
+ */
 export async function getTagIdsByNameAndValue(executionContext: ExecutionContext, tagName: string, tagValue: string): Promise<bigIdTag> {
     let outTag: bigIdTag | undefined = undefined;
     await executeHttpGet(executionContext, `data-catalog/tags/all-pairs?search=${tagName}`)
     .then((response) => {
         if(response.status === 200) {
-            for(const tag of response.data.data) {
-                if(tag.tagValue === tagValue) {
-                    outTag = tag;
-                    break;
-                }
-            }
+            outTag = response.data.data.find((tag: bigIdTag) => tag.tagValue === tagValue);
         }
         else {
             throw new Error(`Bad response from BigID API. Status: ${response.status}.`);
@@ -539,28 +561,28 @@ export async function getTagIdsByNameAndValue(executionContext: ExecutionContext
         throw new Error(`Failed to get tag with name ${tagName}. ${error}`);
     })
     if(outTag === undefined) {
-        throw new Error("Unexpected error occured while getting tags.")
+        throw new Error(`Tag with name ${tagName} and value ${tagValue} not found. Please ensure you selected the correct tag name and value.`);
     }
     return outTag;
 }
 
-export async function setTagsOnObjects(executionContext: ExecutionContext, tagName: string, tagValue: string, objects: BigIdObject[]): Promise<number> {
-    const tag = await getTagIdsByNameAndValue(executionContext, tagName, tagValue);
-    let modifiedCount = 0;
-    for(const object of objects) {
-        modifiedCount += await setTags(executionContext, tag.tagId, tag.valueId, object.source, object.fullyQualifiedName);
-    }
-    return modifiedCount;
-}
-
-export async function setTags(executionContext: ExecutionContext, tagId: string, tagValue: string, dsSource: string, fullyQualifiedName: string): Promise<number> {
+/**
+ * This function assigns a tag to a catalog object.
+ * @param executionContext A container for the call to the BigID API.
+ * @param tagId The alphanumerical ID for the tag to set.
+ * @param valueId The alphanumerical value ID for the tag to set.
+ * @param dsSource The name of the data source for the object to tag.
+ * @param fullyQualifiedName The fully qualified name of the object to tag.
+ * @returns the number of successfully tagged objects.
+ */
+export async function setTags(executionContext: ExecutionContext, tagId: string, valueId: string, dsSource: string, fullyQualifiedName: string): Promise<number> {
     let modifiedCount = -1;
     const body = {
         "data": [{
             "tags": [
                 {
                 "tagId": tagId,
-                "valueId": tagValue
+                "valueId": valueId
                 }
             ],
             "type": "OBJECT",
@@ -575,12 +597,29 @@ export async function setTags(executionContext: ExecutionContext, tagId: string,
             modifiedCount = response.data.data.modified_count
         }
         else {
-            throw new Error(`Bad response from BigID API. Status: ${response.data.data.errors}.`);
+            throw new Error(`Bad response from BigID API. Status: ${response.status}. Errors: ${JSON.stringify(response.data.data.errors)}.`);
         }
     })
     .catch((error) => {
-        throw new Error(`Failed to update tags for object ${fullyQualifiedName}. ${error}`);
+        throw new Error(`Failed to update tags for object ${fullyQualifiedName}. ${error.message}`);
     });
+    return modifiedCount;
+}
+
+/**
+ * This function assigns a tag to each object in the given list of catalog objects.
+ * @param executionContext A container for the call to the BigID API.
+ * @param tagName The human-readable name of the tag to assign.
+ * @param tagValue The human-readable value of the tag to assign.
+ * @param objects A list of BigIdObject objects to be tagged.
+ * @returns the number of successfully tagged objects.
+ */
+export async function setTagsOnObjects(executionContext: ExecutionContext, tagName: string, tagValue: string, objects: BigIdObject[]): Promise<number> {
+    const tag = await getTagIdsByNameAndValue(executionContext, tagName, tagValue);
+    let modifiedCount = 0;
+    for(const object of objects) {
+        modifiedCount += await setTags(executionContext, tag.tagId, tag.valueId, object.source, object.fullyQualifiedName);
+    }
     return modifiedCount;
 }
 

@@ -25,9 +25,9 @@ SECRET_KEY = 'django-insecure-hc$ctmf$hr9--b1$*&wz-31%19n5ki2f&29u#$a#&_=$5m6m-(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# If forwarding the API to a remote host, you must add it here (do not include https://)
 ALLOWED_HOSTS = [
     '127.0.0.1',
-    "petite-cities-shave.loca.lt"
 ]
 
 

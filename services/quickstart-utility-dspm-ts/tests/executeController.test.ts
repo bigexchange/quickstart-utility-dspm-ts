@@ -1,14 +1,15 @@
 jest.mock("../services/executeService");
 jest.mock("log4js");
 
-import { fakeExecutionContextBadAction, fakeExecutionContextGetDSPMCasesAllSources } from "../static/example_responses";
+import { fakeExecutionContextBadAction, fakeExecutionContextBackupFilesAllSources, fakeExecutionContextGetDSPMCasesAllSources } from "../static/example_responses";
 import { executionController } from "../controllers/executeController";
 import { mockResponse } from "../static/example_responses";
 import { getLogger } from "log4js";
-import { printBigIdCasesAsJSON } from "../services/executeService";
+import { backupFilesAction, printBigIdCasesAsJSON } from "../services/executeService";
 import { ActionResponseDetails, StatusEnum } from "@bigid/apps-infrastructure-node-js";
 
 let mockedPrintBigIdCasesAsJSON = printBigIdCasesAsJSON as jest.Mock;
+let mockedBackupFilesAction = backupFilesAction as jest.Mock;
 let mockedGetLogger = getLogger as jest.Mock;
 let mockedLoggerError = jest.fn();
 
@@ -23,6 +24,11 @@ describe("Testing Action Switch...", () => {
         await executionController.executeAction(executionContext, mockResponse());
         expect(mockedPrintBigIdCasesAsJSON).toHaveBeenCalledTimes(1);
     });
+    test("should execute \"Backup files (DSPM)\" action", async () => {
+        const executionContext = fakeExecutionContextBackupFilesAllSources;
+        await executionController.executeAction(executionContext, mockResponse());
+        expect(mockedBackupFilesAction).toHaveBeenCalledTimes(1);
+    });
     test("should trigger default branch", async () => {
         let res = mockResponse();
         const executionContext = fakeExecutionContextBadAction;
@@ -32,18 +38,18 @@ describe("Testing Action Switch...", () => {
     });
     test("should catch known error", async () => {
         let res = mockResponse();
-        const executionContext = fakeExecutionContextGetDSPMCasesAllSources;
+        const executionContext = fakeExecutionContextBackupFilesAllSources;
         let failSpy = jest.spyOn(executionController, "generateFailedResponse");
-        mockedPrintBigIdCasesAsJSON.mockRejectedValueOnce(new Error("eek"));
+        mockedBackupFilesAction.mockRejectedValueOnce(new Error("eek"));
         await executionController.executeAction(executionContext, res);
         expect(mockedLoggerError).toHaveBeenCalledWith(new Error("eek"));
         expect(failSpy).toHaveBeenCalledWith(res, "1111", "eek");
     });
     test("should catch unknown error", async () => {
         let res = mockResponse();
-        const executionContext = fakeExecutionContextGetDSPMCasesAllSources;
+        const executionContext = fakeExecutionContextBackupFilesAllSources;
         let failSpy = jest.spyOn(executionController, "generateFailedResponse");
-        mockedPrintBigIdCasesAsJSON.mockRejectedValueOnce("eek");
+        mockedBackupFilesAction.mockRejectedValueOnce("eek");
         await executionController.executeAction(executionContext, res);
         expect(mockedLoggerError).toHaveBeenCalledWith("eek");
         expect(failSpy).toHaveBeenCalledWith(res, "1111", "unknown error");

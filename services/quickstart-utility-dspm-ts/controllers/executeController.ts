@@ -4,7 +4,7 @@ import {
   ExecutionProvider,
   StatusEnum,
 } from '@bigid/apps-infrastructure-node-js';
-import { backupFilesAction } from '../services/executeService';
+import { backupFilesAction, printBigIdCasesAsJSON } from '../services/executeService';
 import { Response } from "express";
 
 import { getLogger } from "log4js";
@@ -21,6 +21,11 @@ export class ExecutionController extends ExecutionProvider {
         case ("Backup files (DSPM)"):
           const msg = await backupFilesAction(executionContext);
           this.generateSyncSuccessMessage(res, executionId, msg);
+          break;
+
+        case ("Get DSPM Cases"):
+          await printBigIdCasesAsJSON(executionContext);
+          this.generateSyncSuccessMessage(res, executionId, "Printed cases as JSON successfully!");
           break;
 
         default:

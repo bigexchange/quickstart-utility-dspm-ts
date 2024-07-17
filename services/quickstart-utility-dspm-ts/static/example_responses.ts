@@ -1,6 +1,6 @@
 import { ExecutionContext } from "@bigid/apps-infrastructure-node-js";
 import { Response } from "express";
-import { BigIdCase, BigIdObject } from "../utils/executeService.utils";
+import { BackupFileResponse, BigIdCase, BigIdObject } from "../utils/executeService.utils";
 
 /**
  * A mock executionContext for testing.
@@ -34,6 +34,73 @@ export const fakeExecutionContextGetDSPMCasesSomeSources: ExecutionContext = {
     "actionParams": [{
         "paramName": "Data Source Types",
         "paramValue": "s3-v2, hooha"
+    }],
+    "bigidToken": "3333",
+    "bigidBaseUrl": "https://bigidapi/api/v1/",
+    "tpaId": "4444"
+} as any as ExecutionContext;
+
+/**
+ * A mock executionContext for testing.
+ */
+export const fakeExecutionContextBackupFilesAllSources: ExecutionContext = {
+    "actionName": "Backup files (DSPM)",
+    "executionId": "1111",
+    "globalParams": [{
+        "paramName": "EXAMPLE_PARAM",
+        "paramValue": "woloz"
+    }],
+    "actionParams": [{
+        "paramName": "Data Source Types",
+        "paramValue": "all"
+    },
+    {
+        "paramName": "Policy Name",
+        "paramValue": "A Policy"
+    },
+    {
+        "paramName": "Backup Tag",
+        "paramValue": "hasBackup"
+    },
+    {
+        "paramName": "API Token",
+        "paramValue": "abc123gabewoloz"
+    },
+    {
+        "paramName": "API Base URL",
+        "paramValue": "api.gabe.org/"
+    }],
+    "bigidToken": "3333",
+    "bigidBaseUrl": "https://bigidapi/api/v1/",
+    "tpaId": "4444"
+} as any as ExecutionContext;
+
+/**
+ * A mock executionContext for testing.
+ */
+export const fakeExecutionContextBackupFilesSomeSources: ExecutionContext = {
+    "actionName": "Backup files (DSPM)",
+    "executionId": "1111",
+    "globalParams": [],
+    "actionParams": [{
+        "paramName": "Data Source Types",
+        "paramValue": "s3-v2, foobar"
+    },
+    {
+        "paramName": "Policy Name",
+        "paramValue": "A Policy"
+    },
+    {
+        "paramName": "Backup Tag",
+        "paramValue": "hasBackup"
+    },
+    {
+        "paramName": "API Token",
+        "paramValue": "abc123gabewoloz"
+    },
+    {
+        "paramName": "API Base URL",
+        "paramValue": "api.gabe.org/"
     }],
     "bigidToken": "3333",
     "bigidBaseUrl": "https://bigidapi/api/v1/",
@@ -439,3 +506,60 @@ export const fakeDataSourceResponse_200 = {
         }
     }
 };
+
+/**
+ * A mock response for the backup file API call
+ */
+export const fakeBackupFileResponse: BackupFileResponse = {
+    backups_created: ["g"],
+    backups_found: ["w", "z"],
+    num_created: 1,
+    num_found: 2
+}
+
+/**
+ * A mock response for the BigID data-catalog/tags/all-pairs endpoint
+ */
+export const fakeAllPairsResponse = {
+    "status": "success",
+    "statusCode": 200,
+    "data": [
+        {
+            "tagId": "f54383e3-f196-4004-a1c1-821e496fd21a",
+            "valueId": "a2875da4-943f-4f86-8b35-f3c4149d1c5c",
+            "tagName": "hasBackup",
+            "tagValue": "False",
+            "isMutuallyExclusive": false,
+            "properties": {
+                "applicationType": "userDefined",
+                "hidden": false
+            }
+        },
+        {
+            "tagId": "f54383e3-f196-4004-a1c1-821e496fd21a",
+            "valueId": "bef0fff1-2a00-4fa8-aa10-2ff72d9c9316",
+            "tagName": "hasBackup",
+            "tagValue": "True",
+            "isMutuallyExclusive": false,
+            "properties": {
+                "applicationType": "userDefined",
+                "hidden": false
+            }
+        }
+    ],
+    "message": null
+}
+
+/**
+ * A mock resposne for the BigID data-catalog/manual-fields/tags endpoint
+ */
+export const fakeTagsResponse = {
+    "status": "success",
+    "statusCode": 201,
+    "data": {
+        "mutuallyExcluded": [],
+        "errors": [],
+        "modified_count": 1
+    },
+    "message": null
+}
